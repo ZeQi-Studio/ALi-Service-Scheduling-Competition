@@ -1,10 +1,10 @@
 import numpy as np
 
-
 expert_path = r'C:\Users\10372\Desktop\服务调度大赛\process_time_matrix.csv'
 
+
 class expert:
-    def __init__(self,path):
+    def __init__(self, path):
         self.__expert_path__ = path
         self.expert_processing_task_num = []
         self.__expert_task_dict__ = {}
@@ -18,9 +18,9 @@ class expert:
         with open(self.__expert_path__, encoding='utf-8') as f:
             expert_list = np.loadtxt(f, delimiter=",").astype(int)
             # print((expert_list[1]))
-            self.expert_num = len(expert_list)-1
-            self.question_num = len(expert_list[0])-1
-            self.expert_processing_task_num = [3 for i in range(self.expert_num+1)]
+            self.expert_num = len(expert_list) - 1
+            self.question_num = len(expert_list[0]) - 1
+            self.expert_processing_task_num = [3 for i in range(self.expert_num + 1)]
         return expert_list
 
     def __get_expert_task_dict__(self):
@@ -32,13 +32,13 @@ class expert:
         :return expert_task_dict:返回每个任务所对应的专家及其时间的字典
         """
         expert_list = self.__init_expert__()
-        for i in range(1, self.question_num+1):
+        for i in range(1, self.question_num + 1):
             temp_dict = {}
-            for j in range(1, self.expert_num+1):
+            for j in range(1, self.expert_num + 1):
                 if expert_list[j][i] != 999999:
                     temp_dict[j] = expert_list[j][i]
             self.__expert_task_dict__[i] = temp_dict
-        #print(self.__expert_task_dict__)
+        # print(self.__expert_task_dict__)
 
     def __sort_expert_task_dict__(self):
         """"
@@ -46,7 +46,6 @@ class expert:
         :param sorted_exoer_task_dict:对每个任务的专家序列按照时间从小到大进行排序，返回(专家序号，处理时间)的序列
         """
         self.__get_expert_task_dict__()
-        for i in range(1,self.question_num+1):
+        for i in range(1, self.question_num + 1):
             self.sorted_expert_task_dict[i] = sorted(self.__expert_task_dict__[i].items(), key=lambda value: value[1])
-        #print(self.sorted_expert_task_dict)
-expert(expert_path)
+        # print(self.sorted_expert_task_dict)
