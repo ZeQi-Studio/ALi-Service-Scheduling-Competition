@@ -37,7 +37,7 @@ class expert:
         for i in range(1, self.question_num + 1):
             temp_dict = {}
             for j in range(1, self.expert_num + 1):
-                if expert_list[j][i] != 999999:
+                if expert_list[j][i] < 999999:
                     temp_dict[j] = expert_list[j][i]
             self.__expert_task_dict__[i] = temp_dict
         # print(self.__expert_task_dict__)

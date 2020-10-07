@@ -42,6 +42,10 @@ class Expert:
         task.assigned_expert = self
         task.begin_time = timer
 
+        with open("submit.csv", "a+") as f:
+            f.write("{},{},{}\n".format(task.id, self.id, timer))
+            f.flush()
+
     # 默认调用该方法时，该任务已经完成
     def finish(self, task):
         # 更新专家工作负荷量、工作列表、负荷任务数目
