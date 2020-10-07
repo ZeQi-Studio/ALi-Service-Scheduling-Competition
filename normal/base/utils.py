@@ -11,6 +11,7 @@ class Expert:
         self.skill = skill_dict  # Python dict {task_id: processing_time}
         self.processing_task_num = 0
         self.work_load = 0
+        self.processing_task = []
 
     def __str__(self):
         return "<id:{},skill:{},processing_task_num:{},word_load:{}>".format(self.id,
@@ -20,6 +21,28 @@ class Expert:
 
     def __repr__(self):
         return self.__str__()
+
+    def assign(self,Task):
+        # check 专家负荷是否超载
+        if self.processing_task_num >= 3 :
+            raise FutureWarning
+        # TODO:任务type与专家技能不匹配是否仍要分配,现默认任务匹配，专家将解决这一任务
+        if Task.task_type not in self.skill:
+            pass
+        # 专家负荷任务数+1,更新专家工作列表
+        self.processing_task_num += 1
+        self.processing_task.append(Task)
+
+        # 更新当前所分配任务Task的信息
+        Task.assigned_expert = self
+
+    # 默认调用该方法时，该任务已经完成
+    def finish(self,Task):
+        # 更新专家工作负荷量、工作列表、负荷任务数目
+        self.work_load += self.skill[Task.task_type]
+        self.processing_task.remove(Task)
+        self.processing_task_num -= 1
+
 
 
 class Task:
@@ -83,3 +106,15 @@ def load_task_expert_dict(processing_matrix_file):
 if __name__ == '__main__':
     a = load_expert_list("data/process_time_matrix.csv")
     b = load_task_list("data/work_order.csv")
+    # test Expeet.assign and Expert.finish
+    t = b[0]
+    e = a[0]
+    print("专家",e)
+    print("任务",t)
+    e.assign(t)
+    print("分配任务后专家信息：{}".format(e))
+    print("分配任务后任务信息：{} assigned_expert:{}".format(t,t.assigned_expert))
+    e.finish(t)
+    print("任务完成后专家信息：{}".format(e))
+    # print("任务完成后任务信息：{} assigned_expert:{}".format(t, t.assigned_expert))
+
