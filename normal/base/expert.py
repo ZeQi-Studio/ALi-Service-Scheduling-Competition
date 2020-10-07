@@ -12,6 +12,7 @@ class expert:
         self.expert_num = 0
         self.question_num = 0
 
+        self.expert_list = None
         self.__sort_expert_task_dict__()
 
     def __init_expert__(self):
@@ -21,6 +22,7 @@ class expert:
             self.expert_num = len(expert_list) - 1
             self.question_num = len(expert_list[0]) - 1
             self.expert_processing_task_num = [3 for i in range(self.expert_num + 1)]
+        self.expert_list = expert_list
         return expert_list
 
     def __get_expert_task_dict__(self):

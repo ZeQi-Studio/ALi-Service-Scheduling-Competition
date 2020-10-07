@@ -1,8 +1,8 @@
 from base.expert import expert
 from base.task import task_list
 
-expert_path = './process_time_matrix.csv'
-task_path = './work_order.csv'
+expert_path = './data/process_time_matrix.csv'
+task_path = './data/work_order.csv'
 
 """
 should not use queue,but use list
