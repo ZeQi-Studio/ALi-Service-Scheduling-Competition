@@ -33,12 +33,16 @@ class Task:
         self.start_time = start_time
         self.time_limit = time_limit
         self.assigned_expert = None
+        self.assigned_expert: Expert
 
     def __str__(self):
         return "<id:{},type:{},start:{},limit:{}>".format(self.id,
                                                           self.task_type,
                                                           self.start_time,
                                                           self.time_limit)
+
+    def __repr__(self):
+        return self.__str__()
 
 
 # 通过专家的ID找到对应的专家类，以查询专家的状态
@@ -77,8 +81,5 @@ def load_task_expert_dict(processing_matrix_file):
 
 
 if __name__ == '__main__':
-    a = load_expert_list("../../data/process_time_matrix.csv")
-    b = load_task_list("../../data/work_order.csv")
-
-    print(a)
-    print(b[0])
+    a = load_expert_list("data/process_time_matrix.csv")
+    b = load_task_list("data/work_order.csv")
