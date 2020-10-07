@@ -77,7 +77,8 @@ def load_task_expert_dict(processing_matrix_file):
 
 
 if __name__ == '__main__':
-    a = load_expert_list("data/process_time_matrix.csv")
-    b = load_task_list("data/work_order.csv")
-    # print(a)
-    # print(b[0])
+    a = load_expert_list("../../data/process_time_matrix.csv")
+    b = load_task_list("../../data/work_order.csv")
+
+    print(a)
+    print(b[0])

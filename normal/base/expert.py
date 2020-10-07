@@ -1,6 +1,6 @@
 import numpy as np
 
-expert_path = r'C:\Users\10372\Desktop\服务调度大赛\process_time_matrix.csv'
+expert_path = r'../../data/process_time_matrix.csv'
 
 
 class expert:
@@ -51,3 +51,4 @@ class expert:
         for i in range(1, self.question_num + 1):
             self.sorted_expert_task_dict[i] = sorted(self.__expert_task_dict__[i].items(), key=lambda value: value[1])
         # print(self.sorted_expert_task_dict)
+
