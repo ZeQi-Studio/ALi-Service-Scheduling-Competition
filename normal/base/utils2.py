@@ -135,9 +135,22 @@ def score_expert(expert:Expert,task_type):
     else:
         return expert.work_load + expert.processing_task_num * 10 +10000
 
+# 统计各种类型任务在列表中的数量
+def count(task_list,task_type):
+    num = 0
+    for task in task_list:
+        if task.task_type == task_type:
+            num += 1
+    return num
+
+
 # 任务优先级分数 = 剩余响应时间*a + 流转次数*b （注：暂定a=1，b=-5，分数低优先级高）
-def score_task(task:Task):
-    return (task.time_limit-(task.current_time - task.begin_time)) ** 2 + (task.time_limit-(task.current_time - task.begin_time))+ task.task_type * 5
+def score_task(task:Task,ratio):
+#    return (task.time_limit-(task.current_time - task.begin_time)) ** 2 + (task.time_limit-(task.current_time - task.begin_time))+ task.task_type * 5
+    if task.time_limit-(task.current_time - task.begin_time)>=0:
+        return (task.time_limit-(task.current_time - task.begin_time)+ task.task_type * 10)/ratio
+    else:
+        return (task.time_limit-(task.current_time - task.begin_time)/task.time_limit + task.task_type * 10)/ratio
 
 # 实现专家实列列表expert_list 或 任务等待列表wait_list 按优先级的排序，返回[expert/task1,expert/task2,...]
 def expert_priority_sort(expert_list, task_type):
@@ -151,15 +164,19 @@ def expert_priority_sort(expert_list, task_type):
         priority_list.append(expert_list[p_list[i][0]- 1] )      #p_list[i][0]为优先级最高专家的ID，ID-1即为所需索引号
     return priority_list
 
-# 只返回score值较小的一部分
 def task_priority_sort(wait_list, score):
     priority, priority_list = {}, []
     for i in range(len(wait_list)):
-        priority[wait_list[i]] = score_task(wait_list[i])
+        num = count(wait_list,wait_list[i].task_type)
+        ratio = (num + 1) / (len(wait_list) + 1)
+        priority[wait_list[i]] = score_task(wait_list[i],ratio)
     p_list = sorted(priority.items(), key=lambda p:(p[1],p[0].id))
     for p in p_list:
         priority_list.append(p[0])    # 优先级序列中加入该任务
     return priority_list
+
+
+
 
 # 如果专家技能排在所有专家范围内的前10 或者处理时间小于50则保留，另外保证每个专家最终保留至少有一项技能
 def skill_change(expert_list,flag):
@@ -228,7 +245,7 @@ if __name__ == '__main__':
             logger.debug(">>>expert_list:%s",expert_list)
             logger.debug(">>> wait_list:%s", wait_list)
             logger.debug(">>> current_task_list:%s", current_task_list)
-            show_task_type_graph(wait_list)
+           # show_task_type_graph(wait_list)
         # TODO:考虑等待列表的分配，何时调出再分配？
         # 流转次数小于4的，可以继续分配给摸鱼的专家积累负荷量，等于4的则必须被处理掉或继续等待
         # 等待列表中任务的优先级应考虑剩余响应时间、流转次数等因素,另外注意回收的任务再分配要释放专家
@@ -287,8 +304,3 @@ if __name__ == '__main__':
     sigma_L = (L_2 / len(expert_list)) ** 0.5
     score = 3000 * R / (3 * M + 2 * sigma_L)
     print("R:{}  M:{}  sigma:{}  score:{}".format(R, M, sigma_L, score))
-
-
-
-
-
