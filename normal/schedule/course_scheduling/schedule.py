@@ -2,10 +2,11 @@ __package__ = "normal.schedule.course_scheduling"
 
 import numpy as np
 import logging
+from tqdm import tqdm
 from .finetune import *
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 def try_allocate(task, expert):
@@ -35,8 +36,6 @@ def try_allocate(task, expert):
 
 
 def try_insert_with_delay(task: Task, expert: Expert, write_change=False):
-    delay = 0
-
     # sort by arrive time
     expert_task_list = sorted(expert.task_list.copy(), key=lambda value: value.arrive_time)
     expert_task_list.append(task)
@@ -47,14 +46,23 @@ def try_insert_with_delay(task: Task, expert: Expert, write_change=False):
 
         i = 0
         while True:  # find empty place to insert task
+            # 找到空余空间的开头
             if (task_list_binary[begin + i]) <= 2:
-                begin = begin + i
-                break
+                find_insert_place = True
+                # 确认是否有time长的空间
+                for ii in range(time):
+                    if task_list_binary[begin + i + ii] >= 3:
+                        find_insert_place = False
+                        break
+                # 后面空闲时间足够
+                if find_insert_place:
+                    begin = begin + i
+                    break
             i += 1
 
         # update task list
-        for i in range(time):
-            task_list_binary[begin + i] += 1
+        for i in range(begin, begin + time):
+            task_list_binary[i] += 1
 
         if write_change:
             task.begin_time = begin
@@ -68,7 +76,7 @@ def try_insert_with_delay(task: Task, expert: Expert, write_change=False):
         delay += reallocate(task, new_task_list_binary)
 
     if write_change:
-        expert.task_list.append(task)
+        expert.task_list = expert_task_list
         expert.task_list_binary = new_task_list_binary
         task.assigned_expert = expert
         expert.work_load += expert.skill[task.task_type]
@@ -87,8 +95,38 @@ def search_insert_with_delay(task, expert_list):
     # sort by increased delay
     result_set.sort(key=lambda value: value[0])
 
+    # error_check(expert_list)
+
     try_insert_with_delay(task, result_set[0][1],
                           write_change=True)
+
+
+def error_check(expert_list):
+    # check
+    for expert in expert_list:
+        task_list_binary = np.zeros(MAX_TIME)
+        for task in expert.task_list:
+            begin = task.begin_time
+            time = expert.skill[task.task_type]
+
+            for i in range(begin, begin + time):
+                task_list_binary[i] += 1
+
+        for time_cell in task_list_binary:
+            if time_cell > 3:
+                for time_cell_error in task_list_binary:
+                    print(int(time_cell_error), end=" ")
+                raise ValueError
+
+    logger.debug("Error check passed~~")
+
+
+def gen_schedule_result(expert_list):
+    with open("submit.csv", "w") as f:
+        for expert in expert_list:
+            for task in expert.task_list:
+                f.write("{},{},{}\n".format(task.id, expert.id, task.begin_time))
+        f.flush()
 
 
 if __name__ == '__main__':
@@ -124,6 +162,8 @@ if __name__ == '__main__':
     logger.info("Tasks left: %s", len(task_list))
     assert task_amount == allocate_counter + len(task_list)
 
+    error_check(expert_list)
+
     # test
     work_load = []
     for expert in expert_list:
@@ -133,15 +173,17 @@ if __name__ == '__main__':
     work_load = work_load / (60 * 8 * 3)
     logger.info("std: %s", np.std(work_load))
 
-    logger.info("Start allocate with delay...")
+    # with delay
+    logger.info("Start allocating with delay...")
     trash_bin = []
-    for task in task_list:
+    for task in tqdm(task_list):
         logger.debug("Allocate task: %s, task left: %s", task, len(task_list) - len(trash_bin))
         search_insert_with_delay(task, expert_list)
         trash_bin.append(task)
 
     for task in trash_bin:
         task_list.remove(task)
+    assert task_amount == sum([len(x.task_list) for x in expert_list])
 
     # test
     work_load = []
@@ -151,3 +193,6 @@ if __name__ == '__main__':
     work_load = np.array(work_load)
     work_load = work_load / (60 * 8 * 3)
     logger.info("std: %s", np.std(work_load))
+
+    error_check(expert_list)
+    gen_schedule_result(expert_list)
