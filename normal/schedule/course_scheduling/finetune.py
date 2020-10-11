@@ -18,6 +18,7 @@ class Expert(__Expert__):
         super(Expert, self).__init__(expert_id, skill_dict)
         self.task_list = []
         self.task_list_binary = [0 for _ in range(MAX_TIME)]
+        self.delay = 0
 
     def __str__(self):
         return "<id:{},skill:{},processing_task_num:{},word_load:{}>".format(self.id,
