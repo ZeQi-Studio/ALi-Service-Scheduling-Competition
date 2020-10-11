@@ -121,6 +121,14 @@ def error_check(expert_list):
     logger.debug("Error check passed~~")
 
 
+def work_load_check(expert_list):
+    m = 0
+    for expert in expert_list:
+        for task in expert.task_list:
+            m += max(0, task.begin_time - task.arrive_time - task.time_limit) / task.time_limit
+    return m
+
+
 def gen_schedule_result(expert_list):
     with open("submit.csv", "w") as f:
         for expert in expert_list:
@@ -130,34 +138,54 @@ def gen_schedule_result(expert_list):
 
 
 if __name__ == '__main__':
-    expert_list = load_expert_list("data/process_time_matrix.csv")
-    task_list = load_task_list("data/work_order.csv")
+    init_expert_list = load_expert_list("data/process_time_matrix.csv")
+    init_task_list = load_task_list("data/work_order.csv")
 
-    task_amount = len(task_list)
+    task_amount = len(init_task_list)
     allocate_counter = 0
 
-    for expert in expert_list:
-        trash_bin = []
+    expert_list = init_expert_list.copy()
+    task_list = init_task_list.copy()
+    for i in range(3):
+        allocate_counter = 0
+        logger.info("Try init allocate round %s", i)
+        task_list = init_task_list.copy()
+        # init expert
+        for expert in expert_list:
+            expert.work_load = 0
+            expert.task_list = []
+            expert.delay = 0
+            expert.task_list_binary = [0 for _ in range(MAX_TIME)]
+        for expert in expert_list:
+            trash_bin = []
 
-        skill_list = list(expert.skill.items())
-        skill_list.sort(key=lambda value: value[1])
+            skill_list = list(expert.skill.items())
+            skill_list.sort(key=lambda value: value[1])
 
-        for skill_type, time in skill_list:
-            for task in task_list:
-                if task.task_type == skill_type:
-                    if try_allocate(task, expert):
-                        trash_bin.append(task)
-                        allocate_counter += 1
+            for skill_type, time in skill_list:
+                for task in task_list:
+                    if task.task_type == skill_type:
+                        if try_allocate(task, expert):
+                            trash_bin.append(task)
+                            allocate_counter += 1
 
-        for task in trash_bin:
-            task_list.remove(task)
+            for task in trash_bin:
+                task_list.remove(task)
+
+        work_load = []
+        for expert in expert_list:
+            work_load.append((expert, expert.work_load))
+        work_load.sort(key=lambda value: value[1])
+        logger.info("Work load: %s", [x[1] for x in work_load])
+        # sort expert list
+        expert_list = [x[0] for x in work_load]
 
     length = 0
     for expert in expert_list:
         logger.debug(expert.task_list)
         length += len(expert.task_list)
 
-    assert allocate_counter == length
+    assert allocate_counter == length  # check
     logger.info("Tasks allocated: %s", allocate_counter)
     logger.info("Tasks left: %s", len(task_list))
     assert task_amount == allocate_counter + len(task_list)
@@ -189,10 +217,11 @@ if __name__ == '__main__':
     work_load = []
     for expert in expert_list:
         work_load.append(expert.work_load)
-    logger.debug("Final workload: %s", work_load)
+    logger.info("Final workload: %s", work_load)
     work_load = np.array(work_load)
     work_load = work_load / (60 * 8 * 3)
     logger.info("std: %s", np.std(work_load))
 
     error_check(expert_list)
+    logger.info("work load: %s", work_load_check(expert_list))
     gen_schedule_result(expert_list)
