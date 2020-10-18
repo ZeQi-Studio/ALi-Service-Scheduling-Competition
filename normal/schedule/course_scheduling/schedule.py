@@ -130,7 +130,7 @@ def work_load_check(expert_list):
 
 
 def gen_schedule_result(expert_list):
-    with open("submit.csv", "w") as f:
+    with open("result.csv", "w") as f:
         for expert in expert_list:
             for task in expert.task_list:
                 f.write("{},{},{}\n".format(task.id, expert.id, task.begin_time))
@@ -146,7 +146,7 @@ if __name__ == '__main__':
 
     expert_list = init_expert_list.copy()
     task_list = init_task_list.copy()
-    for i in range(3):
+    for i in range(4):
         allocate_counter = 0
         logger.info("Try init allocate round %s", i)
         task_list = init_task_list.copy()
